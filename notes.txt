@@ -1,0 +1,71 @@
+*** Features ***
+
+[basic]
+
+- 1 producer:
+	- publish at regular time interval
+- 1 consumer:
+	- consume all you can
+- 1 node:
+	- run in docker
+	- default/no resources limitations
+- 1 message of constant size
+	- created before test
+- monitor with rabbitmq management interface
+
+
+[monitoring-1]
+
+- create monitoring script:
+	- message publish/consume rates, queue sizes, other rabbit metrics
+	- sample at regular time interval
+- build time based charts with the data (kibana, grafana, pyplot)
+
+
+[monitoring-2]
+
+- also monitor system resources
+	- cpu, memory, disk, networking
+
+
+[limit-rabbit-resources]
+
+- limit rabbit docker container resources
+	- cpu, memory, etc.
+
+
+[monitoring-3]
+
+- note the theoretical limits for each metric
+- force the system to reach at least one of these limits & determine the bottleneck
+
+
+[vary-params-1]
+
+- multiple producers
+- multiple consumers
+- different message sizes
+- different 
+
+
+[vary-params-2]
+
+- use different distributions to vary params:
+	- random
+	- gauss
+	- poisson
+	- exponential
+	- geometric
+
+
+[clustering]
+
+- use more than one rabbit node
+- 2 options:
+	- separate nodes (nodes do not know of each other)
+	- rabbit clustering (communicating nodes)
+- if you do not have time to test this, at least write about the options
+
+
+
+
