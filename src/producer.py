@@ -1,5 +1,16 @@
 import sys
 import pika
+import math
+import time
+from datetime import datetime
+
+from distribution import ExponentialSeries, GaussianRandom, PoissonRandom, GeometricRandom, ExponentialRandom
+
+
+EPOCH = datetime.utcfromtimestamp(0)
+
+def get_milliseconds():
+  return (datetime.utcnow() - EPOCH).total_seconds() * 1000.0
 
 
 class Producer:
@@ -43,9 +54,25 @@ def load_data(files):
 	return res
 
 
-def run(publisher, data):
+def run(publisher, data, distribution, interval_ms):
 
-	publisher.publish(data[0])
+	content = data[0]
+
+	it_cnt = 0
+	while True:
+		timestamp = get_milliseconds()
+		it_cnt += 1
+
+		# publish_cnt = int(publish_cnt * 2)
+		publish_cnt = distribution.next()
+		print "it_cnt={}, publish_cnt={}".format(it_cnt, publish_cnt)
+
+		for i in range(publish_cnt):
+			publisher.publish(content)
+
+		remaining_time = interval_ms - (get_milliseconds() - timestamp)
+		sleep_time_ms = remaining_time if remaining_time > 0 else 0
+		time.sleep(sleep_time_ms / 1000)
 
 
 if __name__ == "__main__":
@@ -54,11 +81,14 @@ if __name__ == "__main__":
 		print "Usage: python producer.py file1 [file2, file3, ...]"
 		sys.exit(1)
 
-	d = load_data(sys.argv[1:])
+	data = load_data(sys.argv[1:])
 
 	p = Producer('localhost', 5672, 
-				 exchange='test1', 
-				 queue='test1.test1', 
-				 routing_key='test1.test1')
+				 			 exchange='test1', 
+				 			 queue='test1.test1', 
+				 			 routing_key='test1.test1')
 	
-	run(p, d)
+	distribution = ExponentialSeries()
+	interval_ms = 1000
+
+	run(p, data, distribution, interval_ms)
