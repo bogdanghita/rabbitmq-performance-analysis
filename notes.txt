@@ -69,3 +69,16 @@
 
 
 
+*** Paper ***
+
+- insist on bottleneck importance:
+	- producers, consumers
+	- network
+	- rabbitmq machine resources
+- what to we want to test?
+	- how good rabbit works on a givem machine with given resources
+	- how good the rabbitmq implementation scales when givem more resources (daca atinge vreun platou; merge un grafic: x-system resources, y-performance_metric)	
+
+
+
+
