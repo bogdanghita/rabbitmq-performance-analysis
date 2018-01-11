@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import sys
 import pika
 import math
@@ -43,7 +45,7 @@ class Producer:
 
 
 def load_data(files):
-	print "files: {}".format(files)
+	print("files: {}".format(files))
 
 	res = []
 
@@ -65,7 +67,7 @@ def run(publisher, data, distribution, interval_ms):
 
 		# publish_cnt = int(publish_cnt * 2)
 		publish_cnt = distribution.next()
-		print "it_cnt={}, publish_cnt={}".format(it_cnt, publish_cnt)
+		print("it_cnt={}, publish_cnt={}".format(it_cnt, publish_cnt))
 
 		for i in range(publish_cnt):
 			publisher.publish(content)
@@ -78,7 +80,7 @@ def run(publisher, data, distribution, interval_ms):
 if __name__ == "__main__":
 
 	if len(sys.argv) < 2:
-		print "Usage: python producer.py file1 [file2, file3, ...]"
+		print("Usage: python producer.py file1 [file2, file3, ...]")
 		sys.exit(1)
 
 	data = load_data(sys.argv[1:])

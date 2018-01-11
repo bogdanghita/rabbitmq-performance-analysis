@@ -1,5 +1,8 @@
+#!/usr/bin/env python3
+
 import numpy as np
 import math
+import sys
 
 
 class ExponentialSeries:
@@ -16,8 +19,6 @@ class ExponentialSeries:
 class AbstractRandom:
 
   def __init__(self, args):
-    print args
-
     self.size = 100
     self.args = args
 
@@ -76,9 +77,24 @@ class ExponentialRandom(AbstractRandom):
 if __name__ == "__main__":
   
   d = GaussianRandom()
-  # d = PoissonRandom()
-  # d = GeometricRandom()
-  # d = ExponentialRandom()
+  # (-5.60052780212,5.23051130879)
 
-  for i in range(105):
-    print d.next()
+  # d = PoissonRandom()
+  # (0,10)
+
+  # d = GeometricRandom()
+  # (1,25)
+
+  # d = ExponentialRandom()
+  # (8.62551424182e-08,15.6896301305)
+
+  min_v = sys.maxint
+  max_v = -sys.maxint - 1
+  for i in range(100):
+    v = d.next()
+    if v < min_v:
+      min_v = v
+    if v > max_v:
+      max_v = v
+    print(v)
+  print("({},{})".format(min_v, max_v))
