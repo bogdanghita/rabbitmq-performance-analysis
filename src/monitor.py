@@ -67,7 +67,7 @@ class Monitor:
     } for q in RABBIT_QUEUES}
 
 
-  def start(self):
+  def start(self, raw=False):
     print("Monitoring started..")
     print("Press ^C to stop")
 
@@ -77,10 +77,13 @@ class Monitor:
       for c in CONTAINERS:
         res = next(self.DOCKER_STATS[c]['stream'])
 
-        self.DOCKER_STATS[c]['stats'].append({
+        data = {
           'timestamp': _get_milliseconds(),
-          'data': res
-        })
+          'metrics': self.extract_metrics_docker(res)
+        }
+        if raw:
+          data['raw'] = res
+        self.DOCKER_STATS[c]['stats'].append(data)
 
       # rabbit stats
       for q in RABBIT_QUEUES:
@@ -91,26 +94,42 @@ class Monitor:
           continue
         res = res.json()
 
-        self.RABBIT_STATS[q]['stats'].append({
+        data = {
           'timestamp': _get_milliseconds(),
-          'data': res
-        })
+          'metrics': self.extract_metrics_rabbit(res)
+        }
+        if raw:
+          data['raw'] = res
+        self.RABBIT_STATS[q]['stats'].append(data)
 
 
   def stop(self):
     print("Monitoring stopped\nProcessing results..")
 
+    # dump data to files
     for c in CONTAINERS:
-      # print(c, json.dumps(self.DOCKER_STATS[c]['stats'], indent=2, sort_keys=True))
       with open(path.join(self.OUTPUT_DIR, "{}.json".format(c)), "w") as f:
         json.dump(self.DOCKER_STATS[c]['stats'], fp=f, indent=2, sort_keys=True)
-
     for q in RABBIT_QUEUES:
-      # print(q, json.dumps(self.RABBIT_STATS[q]['stats'], indent=2, sort_keys=True))
       with open(path.join(self.OUTPUT_DIR, "{}.json".format(q)), "w") as f:
         json.dump(self.RABBIT_STATS[q]['stats'], fp=f, indent=2, sort_keys=True)
 
     print("Done\nTerminating..")
+
+
+  def extract_metrics_docker(self, data):
+    res = {}
+
+    # TODO
+
+    return res
+
+  def extract_metrics_rabbit(self, data):
+    res = {}
+
+    # TODO
+
+    return res
 
 
 if __name__ == "__main__":
@@ -123,4 +142,4 @@ if __name__ == "__main__":
     os.makedirs(output_dir)
 
   m = Monitor(output_dir)
-  m.start()
+  m.start(raw=True)
