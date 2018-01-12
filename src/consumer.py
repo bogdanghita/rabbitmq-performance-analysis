@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 
 import pika
+import sys
+
+
+USAGE_MSG = "Usage: python consumer.py <exchange> <queue>"
 
 
 class Consumer:
@@ -45,9 +49,17 @@ def run(consumer):
 
 if __name__ == "__main__":
 
+	if len(sys.argv) < 3:
+		print(USAGE_MSG)
+		sys.exit(1)
+
+	exchange = sys.argv[1]
+	queue = sys.argv[2]
 	c = Consumer('localhost', 5672, 
-				 exchange='test1', 
-				 queue='test1.test1', 
-				 routing_key='test1.test1')
+				 exchange=exchange, 
+				 queue=queue, 
+				 routing_key=queue)
 	
+	print("[params] exchange={}, queue={}".format(exchange, queue))
+
 	run(c)
