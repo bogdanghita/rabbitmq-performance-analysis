@@ -39,7 +39,7 @@ DISTRIBUTIONS = {
 
 EXCHANGE = "performance-analysis"
 
-USAGE_MSG = "Usage: python producer.py distribution file1 [file2, file3, ...]\n<distribution> can take one of the following values: {}".format(DISTRIBUTIONS.keys())
+USAGE_MSG = "Usage: ./producer.py distribution file1 [file2, file3, ...]\n<distribution> can take one of the following values: {}".format(DISTRIBUTIONS.keys())
 
 
 EPOCH = datetime.utcfromtimestamp(0)

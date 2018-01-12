@@ -4,7 +4,7 @@ import pika
 import sys
 
 
-USAGE_MSG = "Usage: python consumer.py <exchange> <queue>"
+USAGE_MSG = "Usage: ./consumer.py <exchange> <queue>"
 
 
 class Consumer:
