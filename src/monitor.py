@@ -108,10 +108,10 @@ class Monitor:
 
     # dump data to files
     for c in CONTAINERS:
-      with open(path.join(self.OUTPUT_DIR, "{}.json".format(c)), "w") as f:
+      with open(path.join(self.OUTPUT_DIR, "docker_{}.json".format(c)), "w") as f:
         json.dump(self.DOCKER_STATS[c]['stats'], fp=f, indent=2, sort_keys=True)
     for q in RABBIT_QUEUES:
-      with open(path.join(self.OUTPUT_DIR, "{}.json".format(q)), "w") as f:
+      with open(path.join(self.OUTPUT_DIR, "rabbitmq_{}.json".format(q)), "w") as f:
         json.dump(self.RABBIT_STATS[q]['stats'], fp=f, indent=2, sort_keys=True)
 
     print("Done\nTerminating..")
@@ -124,10 +124,19 @@ class Monitor:
 
     return res
 
-  def extract_metrics_rabbit(self, data):
-    res = {}
 
-    # TODO
+  def extract_metrics_rabbit(self, data):
+    res = {
+      "consumers": data["consumers"],
+      "consumer_utilisation": data["consumer_utilisation"],
+      "messages": data["messages"],
+      "messages_details": data["messages_details"],
+      "message_stats": data["message_stats"],
+      "messages_ready": data["messages_ready"],
+      "messages_ready_details": data["messages_ready_details"],
+      "messages_unacknowledged": data["messages_unacknowledged"],
+      "messages_unacknowledged_details": data["messages_unacknowledged_details"],
+    }
 
     return res
 
@@ -142,4 +151,4 @@ if __name__ == "__main__":
     os.makedirs(output_dir)
 
   m = Monitor(output_dir)
-  m.start(raw=True)
+  m.start(raw=False)
