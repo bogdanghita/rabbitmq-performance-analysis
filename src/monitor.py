@@ -118,9 +118,25 @@ class Monitor:
 
 
   def extract_metrics_docker(self, data):
-    res = {}
+    res = {
+      "memory": {
+        "usage": data["memory_stats"]["usage"],
+        "max_usage": data["memory_stats"]["max_usage"],
+        "limit": data["memory_stats"]["limit"],
+        "usage_percentage": float(data["memory_stats"]["usage"]) / data["memory_stats"]["limit"] * 100,
+      },
+      "cpu": {
 
-    # TODO
+      },
+      # "blkio": {},
+      # "networks": {}
+    }
+
+    try:
+      res["cpu"]["usage_percentage"] = self.compute_cpu_usage_percentage(data["precpu_stats"], data["cpu_stats"])
+    except Exception as e:
+      print("[error][extract_metrics_docker] Unable to compute_cpu_usage_percentage. error={}".format(e))
+      pass
 
     return res
 
@@ -139,6 +155,20 @@ class Monitor:
     }
 
     return res
+
+
+  def compute_cpu_usage_percentage(self, previous, current):
+    cpu_percent = 0.0
+
+    cpu_delta = float(current["cpu_usage"]["total_usage"]) - previous["cpu_usage"]["total_usage"]
+    system_delta = float(current["system_cpu_usage"]) - previous["system_cpu_usage"]
+
+    if cpu_delta > 0 and system_delta > 0:
+      cpu_percent = cpu_delta / system_delta * len(current["cpu_usage"]["percpu_usage"]) * 100
+
+    return cpu_percent
+
+
 
 
 if __name__ == "__main__":
