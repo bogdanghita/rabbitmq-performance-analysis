@@ -7,6 +7,7 @@ import signal
 import time
 from datetime import datetime
 import threading
+import requests
 
 
 EPOCH = datetime.utcfromtimestamp(0)
@@ -18,6 +19,12 @@ def _get_milliseconds():
 DOCKER_BASE_URL = "unix://var/run/docker.sock"
 DOCKER_API_VERSION = "1.24"
 CONTAINERS = ["rabbitmq-bd", "mongo_default"]
+
+RABBIT_HOST = "localhost"
+RABBIT_PORT = 15672
+RABBIT_USER = "guest"
+RABBIT_PASS = "guest"
+RABBIT_QUEUES = ["test1.test1"]
 
 
 exit_event = threading.Event()
@@ -32,36 +39,59 @@ def signal_handler(signal, frame):
 class Monitor:
 
 
-  def __init__(self, docker_base_url, docker_api_version):
+  def __init__(self):
 
-    self.DOCKER = docker.from_env(version=docker_api_version)
-    self.DOCKER_LOWLEVEL = docker.APIClient(base_url=docker_base_url,
-                                            version=docker_api_version)
+    self.DOCKER = docker.from_env(version=DOCKER_API_VERSION)
+    self.DOCKER_LOWLEVEL = docker.APIClient(base_url=DOCKER_BASE_URL,
+                                            version=DOCKER_API_VERSION)
 
-    self.STATS = {c: {
+    self.DOCKER_STATS = {c: {
       'stream': self.DOCKER.containers.get(c).stats(decode=True, stream=True),
       'stats': []
     } for c in CONTAINERS}
+    self.RABBIT_STATS = {q: {
+      'stats': []
+    } for q in RABBIT_QUEUES}
 
 
   def start(self):
+    print("Monitoring started..")
+    print("Press ^C to stop")
 
     while not exit_event.is_set():
-      # TODO
-      print("TODO: provide feedback so that the user knows that something is actual happending")
 
+      # docker stats
       for c in CONTAINERS:
-        self.STATS[c]['stats'].append({
+        res = next(self.DOCKER_STATS[c]['stream'])
+
+        self.DOCKER_STATS[c]['stats'].append({
           'timestamp': _get_milliseconds(),
-          'data': next(self.STATS[c]['stream'])
+          'data': res
+        })
+
+      # rabbit stats
+      for q in RABBIT_QUEUES:
+        url = "http://{}:{}/api/queues/%2F/{}".format(RABBIT_HOST, RABBIT_PORT, q)
+        res = requests.get(url, auth=(RABBIT_USER, RABBIT_PASS))
+        if res.status_code != 200:
+          print("[rabbit-stats] error; status_code={}".format(status_code))
+          continue
+        res = res.json()
+
+        self.RABBIT_STATS[q]['stats'].append({
+          'timestamp': _get_milliseconds(),
+          'data': res
         })
 
 
   def stop(self):
-    print("Monitorization stopped\nProcessing results..")
+    print("Monitoring stopped\nProcessing results..")
 
     for c in CONTAINERS:
-      print(c, len(self.STATS[c]['stats']))
+      print(c, json.dumps(self.DOCKER_STATS[c]['stats'], indent=2, sort_keys=True))
+
+    for q in RABBIT_QUEUES:
+      print(q, json.dumps(self.RABBIT_STATS[q]['stats'], indent=2, sort_keys=True))
 
     print("Done\nTerminating..")
 
@@ -71,5 +101,5 @@ if __name__ == "__main__":
 
   signal.signal(signal.SIGINT, signal_handler)
 
-  m = Monitor(DOCKER_BASE_URL, DOCKER_API_VERSION)
+  m = Monitor()
   m.start()
