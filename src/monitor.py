@@ -10,12 +10,17 @@ import threading
 import requests
 from os import path
 
+from logger import LogshtashLogger
+
 
 EPOCH = datetime.utcfromtimestamp(0)
 
 def _get_milliseconds():
   return (datetime.utcnow() - EPOCH).total_seconds() * 1000.0
 
+
+LOGSTASH_HOST = "127.0.0.1"
+LOGSTASH_PORT = 8082
 
 DOCKER_BASE_URL = "unix://var/run/docker.sock"
 DOCKER_API_VERSION = "1.24"
@@ -50,9 +55,10 @@ def signal_handler(signal, frame):
 class Monitor:
 
 
-  def __init__(self, output_dir):
+  def __init__(self, output_dir, analysis_params):
 
     self.OUTPUT_DIR = output_dir
+    self.ANALYSIS_PARAMS = analysis_params
 
     self.DOCKER = docker.from_env(version=DOCKER_API_VERSION)
     self.DOCKER_LOWLEVEL = docker.APIClient(base_url=DOCKER_BASE_URL,
@@ -66,6 +72,8 @@ class Monitor:
       'stats': []
     } for q in RABBIT_QUEUES}
 
+    self.LOGSTASH = LogshtashLogger(LOGSTASH_HOST, LOGSTASH_PORT)
+
 
   def start(self, raw=False):
     print("Monitoring started..")
@@ -78,12 +86,16 @@ class Monitor:
         res = next(self.DOCKER_STATS[c]['stream'])
 
         data = {
-          'timestamp': _get_milliseconds(),
-          'metrics': self.extract_metrics_docker(res)
+          "timestamp": _get_milliseconds(),
+          "target": {"docker_base_url": DOCKER_BASE_URL, "container": c},
+          "analysis_params": self.ANALYSIS_PARAMS,
+          "stats": self.extract_metrics_docker(res)
         }
         if raw:
-          data['raw'] = res
+          data["raw"] = res
+
         self.DOCKER_STATS[c]['stats'].append(data)
+        self.LOGSTASH.log(metric_type="stats", metric="docker", data=data)
 
       # rabbit stats
       for q in RABBIT_QUEUES:
@@ -95,12 +107,16 @@ class Monitor:
         res = res.json()
 
         data = {
-          'timestamp': _get_milliseconds(),
-          'metrics': self.extract_metrics_rabbit(res)
+          "timestamp": _get_milliseconds(),
+          "target": {"host": RABBIT_HOST, "port": RABBIT_PORT, "queue": q},
+          "analysis_params": self.ANALYSIS_PARAMS,
+          "stats": self.extract_metrics_rabbit(res)
         }
         if raw:
-          data['raw'] = res
+          data["raw"] = res
+        
         self.RABBIT_STATS[q]['stats'].append(data)
+        self.LOGSTASH.log(metric_type="stats", metric="rabbitmq", data=data)
 
 
   def stop(self):
@@ -118,19 +134,23 @@ class Monitor:
 
 
   def extract_metrics_docker(self, data):
-    res = {
-      "memory": {
-        "usage": data["memory_stats"]["usage"],
-        "max_usage": data["memory_stats"]["max_usage"],
-        "limit": data["memory_stats"]["limit"],
-        "usage_percentage": float(data["memory_stats"]["usage"]) / data["memory_stats"]["limit"] * 100,
-      },
-      "cpu": {
+    try:
+      res = {
+        "memory": {
+          "usage": data["memory_stats"]["usage"],
+          "max_usage": data["memory_stats"]["max_usage"],
+          "limit": data["memory_stats"]["limit"],
+          "usage_percentage": float(data["memory_stats"]["usage"]) / data["memory_stats"]["limit"] * 100,
+        },
+        "cpu": {
 
-      },
-      # "blkio": {},
-      # "networks": {}
-    }
+        },
+        # "blkio": {},
+        # "networks": {}
+      }
+    except Exception as e:
+      print("[error][extract_metrics_docker] Unable to extract docker metrics. error={}".format(e))
+      return {}
 
     try:
       res["cpu"]["usage_percentage"] = self.compute_cpu_usage_percentage(data["precpu_stats"], data["cpu_stats"])
@@ -141,18 +161,22 @@ class Monitor:
     return res
 
 
-  def extract_metrics_rabbit(self, data):
-    res = {
-      "consumers": data["consumers"],
-      "consumer_utilisation": data["consumer_utilisation"],
-      "messages": data["messages"],
-      "messages_details": data["messages_details"],
-      "message_stats": data["message_stats"],
-      "messages_ready": data["messages_ready"],
-      "messages_ready_details": data["messages_ready_details"],
-      "messages_unacknowledged": data["messages_unacknowledged"],
-      "messages_unacknowledged_details": data["messages_unacknowledged_details"],
-    }
+  def extract_metrics_rabbit(self, data):   
+    try:
+      res = {
+        "consumers": data["consumers"],
+        "consumer_utilisation": data["consumer_utilisation"],
+        "messages": data["messages"],
+        "messages_details": data["messages_details"],
+        "message_stats": data["message_stats"],
+        "messages_ready": data["messages_ready"],
+        "messages_ready_details": data["messages_ready_details"],
+        "messages_unacknowledged": data["messages_unacknowledged"],
+        "messages_unacknowledged_details": data["messages_unacknowledged_details"],
+      }
+    except Exception as e:
+      print("[error][extract_metrics_rabbit] Unable to extract rabbitmq metrics. error={}".format(e))
+      res = {}
 
     return res
 
@@ -180,5 +204,8 @@ if __name__ == "__main__":
   if not path.exists(output_dir):
     os.makedirs(output_dir)
 
-  m = Monitor(output_dir)
+  # TODO: take from argv the current analysis params
+  analysis_params = {}
+
+  m = Monitor(output_dir, analysis_params)
   m.start(raw=False)

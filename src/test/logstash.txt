@@ -1,0 +1,3 @@
+/opt/logstash/bin/logstash -e 'input { http { port => 8080 } } output { elasticsearch { hosts => [ "localhost:9200" ] } }'
+
+curl -H "content-type: application/json" -XPUT 'http://127.0.0.1:8080/twitter/tweet/1' -d '{"user" : "kimchy", "message" : "trying out Elasticsearch"}'
