@@ -55,7 +55,7 @@ if __name__ == "__main__":
 
 	exchange = sys.argv[1]
 	queue = sys.argv[2]
-	c = Consumer('localhost', 5672, 
+	c = Consumer('rabbitmq-bd', 5672, 
 				 exchange=exchange, 
 				 queue=queue, 
 				 routing_key=queue)

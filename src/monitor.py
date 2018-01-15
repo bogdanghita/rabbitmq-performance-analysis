@@ -24,7 +24,7 @@ LOGSTASH_PORT = 8082
 
 DOCKER_BASE_URL = "unix://var/run/docker.sock"
 DOCKER_API_VERSION = "1.24"
-CONTAINERS = ["rabbitmq-bd"]
+CONTAINERS = ["rabbitmq-bd", "clients-bd", "elk-bd"]
 
 RABBIT_HOST = "localhost"
 RABBIT_PORT = 15672

@@ -120,7 +120,7 @@ if __name__ == "__main__":
 	distribution = DISTRIBUTIONS[sys.argv[1]]
 	queue = '{}.{}'.format(EXCHANGE, sys.argv[1])
 	data = load_data(sys.argv[2:])
-	p = Producer('localhost', 5672, 
+	p = Producer('rabbitmq-bd', 5672, 
 				 			 exchange=EXCHANGE, 
 				 			 queue=queue, 
 				 			 routing_key=queue)
