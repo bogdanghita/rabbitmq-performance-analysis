@@ -12,7 +12,14 @@ print(dname)
 
 
 TEST_FILES_PATH = "./tests/"
-TEST_FILES = ["exp-rand_1K.json", "exp-series_1K.json", "gauss-rand_1K.json", "geometric-rand_1K.json", "poisson-rand_1K.json"]
+TEST_FILES = [
+              # "exp-rand_1K.json", 
+              # "exp-series_1K.json", 
+              # "gauss-rand_1K.json", 
+              # "geometric-rand_1K.json", 
+              # "poisson-rand_1K.json",
+              "prog-series_1K.json"
+              ]
 
 RESULT_FILES_PATH = "./results/"
 

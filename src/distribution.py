@@ -16,6 +16,18 @@ class ExponentialSeries:
     return res
 
 
+class ProgressiveSeries:
+
+  def __init__(self, start=0, increment=10):
+    self.current = start
+    self.inc = increment
+
+  def next(self):
+    res = self.current
+    self.current += self.inc
+    return res
+
+
 class AbstractRandom:
 
   def __init__(self, args):

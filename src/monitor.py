@@ -35,7 +35,8 @@ RABBIT_QUEUES = [
   "performance-analysis.poisson-rand",
   "performance-analysis.geometric-rand",
   "performance-analysis.exp-rand",
-  "performance-analysis.exp-series"
+  "performance-analysis.exp-series",
+  "performance-analysis.prog-series"
 ]
 
 OUTPUT_DIR = "../output/"

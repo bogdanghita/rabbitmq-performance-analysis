@@ -6,7 +6,7 @@ import math
 import time
 from datetime import datetime
 
-from distribution import ExponentialSeries, GaussianRandom, PoissonRandom, GeometricRandom, ExponentialRandom
+from distribution import ExponentialSeries, GaussianRandom, PoissonRandom, GeometricRandom, ExponentialRandom, ProgressiveSeries
 
 
 DISTRIBUTIONS = {
@@ -32,6 +32,11 @@ DISTRIBUTIONS = {
 	}, 
 	"exp-series": {
 		"distribution": ExponentialSeries(),
+		"multiplier": 1,
+		"interval_ms": 1000
+	},
+	"prog-series": {
+		"distribution": ProgressiveSeries(0, 10),
 		"multiplier": 1,
 		"interval_ms": 1000
 	}
