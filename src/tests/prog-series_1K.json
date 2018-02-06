@@ -1,7 +1,7 @@
 {
-  "begin_delay_s": 15,
-  "run_time_s": 1800,
-  "end_delay_s": 15,
+  "begin_delay_s": 30,
+  "run_time_s": 1200,
+  "end_delay_s": 30,
   "exchange": "performance-analysis",
   "queue": "performance-analysis.prog-series",
   "distribution": "prog-series",

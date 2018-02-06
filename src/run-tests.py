@@ -52,6 +52,11 @@ def run_test(name, params):
   print("Terminating producer..")
   p.kill()
   p.wait()
+
+  # consume stop delay
+  print("Waiting {}s..".format(params['end_delay_s']))
+  time.sleep(params['end_delay_s'])
+
   print("Terminating consumer..")
   c.kill()
   c.wait()
